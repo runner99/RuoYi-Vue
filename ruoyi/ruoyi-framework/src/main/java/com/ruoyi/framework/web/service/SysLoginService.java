@@ -20,7 +20,7 @@ import com.ruoyi.framework.manager.factory.AsyncFactory;
 
 /**
  * 登录校验方法
- * 
+ *
  * @author ruoyi
  */
 @Component
@@ -37,7 +37,7 @@ public class SysLoginService
 
     /**
      * 登录验证
-     * 
+     *
      * @param username 用户名
      * @param password 密码
      * @param code 验证码
@@ -51,6 +51,7 @@ public class SysLoginService
         redisCache.deleteObject(verifyKey);
         if (captcha == null)
         {
+            //这种是用来异步写记录日志的
             AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire")));
             throw new CaptchaExpireException();
         }
@@ -82,6 +83,7 @@ public class SysLoginService
         }
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+
         // 生成token
         return tokenService.createToken(loginUser);
     }
