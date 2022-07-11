@@ -34,7 +34,7 @@ import com.ruoyi.system.service.ISysUserService;
 
 /**
  * 用户信息
- * 
+ *
  * @author ruoyi
  */
 @RestController
@@ -60,6 +60,7 @@ public class SysUserController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysUser user)
     {
+        //获取请求里面的对象数据进行封装，然后在sql查询的时候加进去
         startPage();
         List<SysUser> list = userService.selectUserList(user);
         return getDataTable(list);
