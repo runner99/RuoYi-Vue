@@ -57,7 +57,7 @@ Vue 获取图片，前端还是后端？
 
 3.生成Token
 
-使用异步任务管理器，结合线程池，实现了异步的操作日志记录，和业务逻辑实现异步解耦合。
+使用异步任务管理器，结合线程池，实现了异步的登陆日志记录，和业务逻辑实现异步解耦合。
 
 ## getInfo
 
@@ -154,6 +154,191 @@ public AjaxResult baseException(BaseException e)
 ```
 
 ![image-20220711223809717](C:\learning\项目\RuoYi-Vue\images\image-20220711223809717.png)
+
+# 权限注解
+
+```
+1、xxx：xxx：list意思是能不能进入这个菜单进行对表增删改查，如果没有这个权限，前端不能进入菜单。
+2、xxx：xxx：add，remove，edit，query，意思是对前端的增删改查实现，往往会在前端的组件多加一个指令v-hasPermi（若依封装），如果没有这个权限，则组件将不会显示。
+
+3、后端执行某个controller若需要某个权限才能执行，则需要加上注解@PreAuthorize("@ss.hasPermi('system:user:list')")
+这f个注解是若依+SpringSecurity框架共同实现的，它会先去执行方法ss.hasPermi('system:user:list')来判断是否能去执行相关的controller。
+4、在登录的时候，每次点击全局页面刷新的时候，都会执行getInfo方法去获取权限，这个权限会被vuex进行管理，从而方便在每一个界面判断是否展示某个组件/按钮。
+```
+
+![image-20220712092838083](C:\learning\项目\RuoYi-Vue\images\image-20220712092838083.png)
+
+登陆的时候的getInfo里面获取可操作的权限
+
+![image-20220712092411424](C:\learning\项目\RuoYi-Vue\images\image-20220712092411424.png)
+
+# 数据权限
+
+所谓数据权限，就是某个用户能查询哪些数据，来看一下若依给我们的解释：
+
+在实际开发中，需要设置用户只能查看哪些部门的数据，这种情况一般称为数据权限。
+ 例如对于销售，财务的数据，它们是非常敏感的，因此要求对数据权限进行控制， 对于基于集团性的应用系统而言，就更多需要控制好各自公司的数据了。如设置只能看本公司、或者本部门的数据，对于特殊的领导，可能需要跨部门的数据， 因此程序不能硬编码那个领导该访问哪些数据，需要进行后台的权限和数据权限的控制。
+
+针对角色设置的一个权限，自定义一个注解，然后像log一样对其进行切入
+
+![image-20220712100415120](C:\learning\项目\RuoYi-Vue\images\image-20220712100415120.png)
+
+```java
+/**
+ * 数据过滤处理
+ *
+ * @author ruoyi
+ */
+@Aspect
+@Component
+public class DataScopeAspect
+{
+    /**
+     * 全部数据权限
+     */
+    public static final String DATA_SCOPE_ALL = "1";
+
+    /**
+     * 自定数据权限
+     */
+    public static final String DATA_SCOPE_CUSTOM = "2";
+
+    /**
+     * 部门数据权限
+     */
+    public static final String DATA_SCOPE_DEPT = "3";
+
+    /**
+     * 部门及以下数据权限
+     */
+    public static final String DATA_SCOPE_DEPT_AND_CHILD = "4";
+
+    /**
+     * 仅本人数据权限
+     */
+    public static final String DATA_SCOPE_SELF = "5";
+
+    /**
+     * 数据权限过滤关键字
+     */
+    public static final String DATA_SCOPE = "dataScope";
+
+    // 配置织入点
+    @Pointcut("@annotation(com.ruoyi.common.annotation.DataScope)")
+    public void dataScopePointCut()
+    {
+    }
+
+    @Before("dataScopePointCut()")
+    public void doBefore(JoinPoint point) throws Throwable
+    {
+        handleDataScope(point);
+    }
+
+    protected void handleDataScope(final JoinPoint joinPoint)
+    {
+        // 获得注解
+        DataScope controllerDataScope = getAnnotationLog(joinPoint);
+        if (controllerDataScope == null)
+        {
+            return;
+        }
+        // 获取当前的用户
+        LoginUser loginUser = SpringUtils.getBean(TokenService.class).getLoginUser(ServletUtils.getRequest());
+        if (StringUtils.isNotNull(loginUser))
+        {
+            SysUser currentUser = loginUser.getUser();
+            // 如果是超级管理员，则不过滤数据
+            if (StringUtils.isNotNull(currentUser) && !currentUser.isAdmin())
+            {
+                dataScopeFilter(joinPoint, currentUser, controllerDataScope.deptAlias(),
+                        controllerDataScope.userAlias());
+            }
+        }
+    }
+
+    /**
+     * 数据范围过滤
+     *
+     * @param joinPoint 切点
+     * @param user 用户
+     * @param userAlias 别名
+     */
+    public static void dataScopeFilter(JoinPoint joinPoint, SysUser user, String deptAlias, String userAlias)
+    {
+        StringBuilder sqlString = new StringBuilder();
+
+        for (SysRole role : user.getRoles())
+        {
+            String dataScope = role.getDataScope();
+            if (DATA_SCOPE_ALL.equals(dataScope))
+            {
+                sqlString = new StringBuilder();
+                break;
+            }
+            else if (DATA_SCOPE_CUSTOM.equals(dataScope))
+            {
+                sqlString.append(StringUtils.format(
+                        " OR {}.dept_id IN ( SELECT dept_id FROM sys_role_dept WHERE role_id = {} ) ", deptAlias,
+                        role.getRoleId()));
+            }
+            else if (DATA_SCOPE_DEPT.equals(dataScope))
+            {
+                sqlString.append(StringUtils.format(" OR {}.dept_id = {} ", deptAlias, user.getDeptId()));
+            }
+            else if (DATA_SCOPE_DEPT_AND_CHILD.equals(dataScope))
+            {
+                sqlString.append(StringUtils.format(
+                        " OR {}.dept_id IN ( SELECT dept_id FROM sys_dept WHERE dept_id = {} or find_in_set( {} , ancestors ) )",
+                        deptAlias, user.getDeptId(), user.getDeptId()));
+            }
+            else if (DATA_SCOPE_SELF.equals(dataScope))
+            {
+                if (StringUtils.isNotBlank(userAlias))
+                {
+                    sqlString.append(StringUtils.format(" OR {}.user_id = {} ", userAlias, user.getUserId()));
+                }
+                else
+                {
+                    // 数据权限为仅本人且没有userAlias别名不查询任何数据
+                    sqlString.append(" OR 1=0 ");
+                }
+            }
+        }
+
+        if (StringUtils.isNotBlank(sqlString.toString()))
+        {
+            Object params = joinPoint.getArgs()[0];
+            if (StringUtils.isNotNull(params) && params instanceof BaseEntity)
+            {
+                BaseEntity baseEntity = (BaseEntity) params;
+                baseEntity.getParams().put(DATA_SCOPE, " AND (" + sqlString.substring(4) + ")");
+            }
+        }
+    }
+
+    /**
+     * 是否存在注解，如果存在就获取
+     */
+    private DataScope getAnnotationLog(JoinPoint joinPoint)
+    {
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        Method method = methodSignature.getMethod();
+
+        if (method != null)
+        {
+            return method.getAnnotation(DataScope.class);
+        }
+        return null;
+    }
+}
+
+```
+
+![image-20220712100817700](C:\learning\项目\RuoYi-Vue\images\image-20220712100817700.png)
+
+
 
 # 日志
 
