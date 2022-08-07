@@ -6,12 +6,12 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.annotation.DataSource;
-import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.constant.CacheConstants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.enums.DataSourceType;
-import com.ruoyi.common.exception.CustomException;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.SysConfig;
 import com.ruoyi.system.mapper.SysConfigMapper;
@@ -37,11 +37,7 @@ public class SysConfigServiceImpl implements ISysConfigService
     @PostConstruct
     public void init()
     {
-        List<SysConfig> configsList = configMapper.selectConfigList(new SysConfig());
-        for (SysConfig config : configsList)
-        {
-            redisCache.setCacheObject(getCacheKey(config.getConfigKey()), config.getConfigValue());
-        }
+        loadingConfigCache();
     }
 
     /**
@@ -82,6 +78,22 @@ public class SysConfigServiceImpl implements ISysConfigService
             return retConfig.getConfigValue();
         }
         return StringUtils.EMPTY;
+    }
+
+    /**
+     * 获取验证码开关
+     * 
+     * @return true开启，false关闭
+     */
+    @Override
+    public boolean selectCaptchaEnabled()
+    {
+        String captchaEnabled = selectConfigByKey("sys.account.captchaEnabled");
+        if (StringUtils.isEmpty(captchaEnabled))
+        {
+            return true;
+        }
+        return Convert.toBool(captchaEnabled);
     }
 
     /**
@@ -134,36 +146,53 @@ public class SysConfigServiceImpl implements ISysConfigService
      * 批量删除参数信息
      * 
      * @param configIds 需要删除的参数ID
-     * @return 结果
      */
     @Override
-    public int deleteConfigByIds(Long[] configIds)
+    public void deleteConfigByIds(Long[] configIds)
     {
         for (Long configId : configIds)
         {
             SysConfig config = selectConfigById(configId);
             if (StringUtils.equals(UserConstants.YES, config.getConfigType()))
             {
-                throw new CustomException(String.format("内置参数【%1$s】不能删除 ", config.getConfigKey()));
+                throw new ServiceException(String.format("内置参数【%1$s】不能删除 ", config.getConfigKey()));
             }
+            configMapper.deleteConfigById(configId);
+            redisCache.deleteObject(getCacheKey(config.getConfigKey()));
         }
-        int count = configMapper.deleteConfigByIds(configIds);
-        if (count > 0)
-        {
-            Collection<String> keys = redisCache.keys(Constants.SYS_CONFIG_KEY + "*");
-            redisCache.deleteObject(keys);
-        }
-        return count;
     }
 
     /**
-     * 清空缓存数据
+     * 加载参数缓存数据
      */
     @Override
-    public void clearCache()
+    public void loadingConfigCache()
     {
-        Collection<String> keys = redisCache.keys(Constants.SYS_CONFIG_KEY + "*");
+        List<SysConfig> configsList = configMapper.selectConfigList(new SysConfig());
+        for (SysConfig config : configsList)
+        {
+            redisCache.setCacheObject(getCacheKey(config.getConfigKey()), config.getConfigValue());
+        }
+    }
+
+    /**
+     * 清空参数缓存数据
+     */
+    @Override
+    public void clearConfigCache()
+    {
+        Collection<String> keys = redisCache.keys(CacheConstants.SYS_CONFIG_KEY + "*");
         redisCache.deleteObject(keys);
+    }
+
+    /**
+     * 重置参数缓存数据
+     */
+    @Override
+    public void resetConfigCache()
+    {
+        clearConfigCache();
+        loadingConfigCache();
     }
 
     /**
@@ -192,6 +221,6 @@ public class SysConfigServiceImpl implements ISysConfigService
      */
     private String getCacheKey(String configKey)
     {
-        return Constants.SYS_CONFIG_KEY + configKey;
+        return CacheConstants.SYS_CONFIG_KEY + configKey;
     }
 }

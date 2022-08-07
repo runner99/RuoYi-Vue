@@ -1,12 +1,16 @@
 package com.ruoyi.common.utils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.core.text.Convert;
 
 /**
@@ -49,6 +53,22 @@ public class ServletUtils
     }
 
     /**
+     * 获取Boolean参数
+     */
+    public static Boolean getParameterToBool(String name)
+    {
+        return Convert.toBool(getRequest().getParameter(name));
+    }
+
+    /**
+     * 获取Boolean参数
+     */
+    public static Boolean getParameterToBool(String name, Boolean defaultValue)
+    {
+        return Convert.toBool(getRequest().getParameter(name), defaultValue);
+    }
+
+    /**
      * 获取request
      */
     public static HttpServletRequest getRequest()
@@ -83,9 +103,8 @@ public class ServletUtils
      * 
      * @param response 渲染对象
      * @param string 待渲染的字符串
-     * @return null
      */
-    public static String renderString(HttpServletResponse response, String string)
+    public static void renderString(HttpServletResponse response, String string)
     {
         try
         {
@@ -98,7 +117,6 @@ public class ServletUtils
         {
             e.printStackTrace();
         }
-        return null;
     }
 
     /**
@@ -109,13 +127,13 @@ public class ServletUtils
     public static boolean isAjaxRequest(HttpServletRequest request)
     {
         String accept = request.getHeader("accept");
-        if (accept != null && accept.indexOf("application/json") != -1)
+        if (accept != null && accept.contains("application/json"))
         {
             return true;
         }
 
         String xRequestedWith = request.getHeader("X-Requested-With");
-        if (xRequestedWith != null && xRequestedWith.indexOf("XMLHttpRequest") != -1)
+        if (xRequestedWith != null && xRequestedWith.contains("XMLHttpRequest"))
         {
             return true;
         }
@@ -127,10 +145,42 @@ public class ServletUtils
         }
 
         String ajax = request.getParameter("__ajax");
-        if (StringUtils.inStringIgnoreCase(ajax, "json", "xml"))
+        return StringUtils.inStringIgnoreCase(ajax, "json", "xml");
+    }
+
+    /**
+     * 内容编码
+     * 
+     * @param str 内容
+     * @return 编码后的内容
+     */
+    public static String urlEncode(String str)
+    {
+        try
         {
-            return true;
+            return URLEncoder.encode(str, Constants.UTF8);
         }
-        return false;
+        catch (UnsupportedEncodingException e)
+        {
+            return StringUtils.EMPTY;
+        }
+    }
+
+    /**
+     * 内容解码
+     * 
+     * @param str 内容
+     * @return 解码后的内容
+     */
+    public static String urlDecode(String str)
+    {
+        try
+        {
+            return URLDecoder.decode(str, Constants.UTF8);
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            return StringUtils.EMPTY;
+        }
     }
 }
