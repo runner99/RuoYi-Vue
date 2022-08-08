@@ -3,11 +3,11 @@
 
 # 验证码实现
 
-![image-20220703212340407](C:\learning\项目\RuoYi-Vue\images\image-20220703212340407.png)
+![image-20220703212340407](images/image-20220703212340407.png)
 
 # poi使用
 
-![image-20220704124058276](C:\learning\项目\RuoYi-Vue\images\image-20220704124058276.png)
+![image-20220704124058276](images/image-20220704124058276.png)
 
 ![image-20220704124041771](C:\learning\项目\RuoYi-Vue\images\image-20220704124041771.png)
 
@@ -15,7 +15,7 @@
 
 # 用户角色权限
 
-![image-20220705122151538](C:\learning\项目\RuoYi-Vue\images\image-20220705122151538.png)
+![image-20220705122151538](images/image-20220705122151538.png)
 
 # 前端验证码
 
@@ -35,7 +35,7 @@ Vue 获取图片，前端还是后端？
 
 反向代理，url 请求前端，进行代理，映射到后端，解决跨越问题
 
-![image-20220710220121439](C:\learning\项目\RuoYi-Vue\images\image-20220710220121439.png)
+![image-20220710220121439](images/image-20220710220121439.png)
 
 # 登陆的实现
 
@@ -43,11 +43,11 @@ Vue 获取图片，前端还是后端？
 
 前端：请求 URL: http://localhost/dev-api/login
 
-![image-20220710222548283](C:\learning\项目\RuoYi-Vue\images\image-20220710222548283.png)
+![image-20220710222548283](images/image-20220710222548283.png)
 
-![image-20220710222557897](C:\learning\项目\RuoYi-Vue\images\image-20220710222557897.png)
+![image-20220710222557897](images/image-20220710222557897.png)
 
-![image-20220710222606189](C:\learning\项目\RuoYi-Vue\images\image-20220710222606189.png)
+![image-20220710222606189](images/image-20220710222606189.png)
 
 后端：
 
@@ -65,15 +65,15 @@ Vue 获取图片，前端还是后端？
 
 获取当前用户的角色和权限信息，存储到 Vuex 中
 
-![image-20220710231603773](C:\learning\项目\RuoYi-Vue\images\image-20220710231603773.png)
+![image-20220710231603773](images/image-20220710231603773.png)
 
-![image-20220710231644203](C:\learning\项目\RuoYi-Vue\images\image-20220710231644203.png)
+![image-20220710231644203](images/image-20220710231644203.png)
 
 ## getRouters
 
 根据当前用户的权限获取动态路由
 
-![image-20220710231804688](C:\learning\项目\RuoYi-Vue\images\image-20220710231804688.png)
+![image-20220710231804688](images/image-20220710231804688.png)
 
 # 系统管理
 
@@ -81,15 +81,15 @@ Vue 获取图片，前端还是后端？
 
 ### 1.list
 
-![image-20220711101921581](C:\learning\项目\RuoYi-Vue\images\image-20220711101921581.png)
+![image-20220711101921581](images/image-20220711101921581.png)
 
-![image-20220711102009708](C:\learning\项目\RuoYi-Vue\images\image-20220711102009708.png)
+![image-20220711102009708](images/image-20220711102009708.png)
 
-![image-20220711102230885](C:\learning\项目\RuoYi-Vue\images\image-20220711102230885.png)
+![image-20220711102230885](images/image-20220711102230885.png)
 
 ### 2.treeselect
 
-![image-20220711101942819](C:\learning\项目\RuoYi-Vue\images\image-20220711101942819.png)
+![image-20220711101942819](images/image-20220711101942819.png)
 
 # 事务
 
@@ -97,21 +97,21 @@ Vue 获取图片，前端还是后端？
 
 - 常见坑点1：遇到检查异常时，事务开启，也无法回滚。 例如下面这段代码，用户依旧增加成功，并没有因为后面遇到检查异常而回滚！！
 
-![image-20220711162150887](C:\learning\项目\RuoYi-Vue\images\image-20220711162150887.png)
+![image-20220711162150887](images/image-20220711162150887.png)
 
 原因分析：因为`Spring`的默认的事务规则是遇到运行异常`（RuntimeException）`和程序错误`（Error）`才会回滚。如果想针对检查异常进行事务回滚，可以在`@Transactional`注解里使用 `rollbackFor`属性明确指定异常。
 例如下面这样，就可以正常回滚：
 
-![image-20220711162203504](C:\learning\项目\RuoYi-Vue\images\image-20220711162203504.png)
+![image-20220711162203504](images/image-20220711162203504.png)
 
 - 常见坑点2： 在业务层捕捉异常后，发现事务不生效。 这是许多新手都会犯的一个错误，在业务层手工捕捉并处理了异常，你都把异常“吃”掉了，`Spring`自然不知道这里有错，更不会主动去回滚数据。
   例如：下面这段代码直接导致用户新增的事务回滚没有生效。
 
-![image-20220711162235938](C:\learning\项目\RuoYi-Vue\images\image-20220711162235938.png)
+![image-20220711162235938](images/image-20220711162235938.png)
 
 推荐做法：在业务层统一抛出异常，然后在控制层统一处理。
 
-![image-20220711162249280](C:\learning\项目\RuoYi-Vue\images\image-20220711162249280.png)
+![image-20220711162249280](images/image-20220711162249280.png)
 
 |               |                                                              |
 | ------------- | ------------------------------------------------------------ |
@@ -166,11 +166,11 @@ public AjaxResult baseException(BaseException e)
 4、在登录的时候，每次点击全局页面刷新的时候，都会执行getInfo方法去获取权限，这个权限会被vuex进行管理，从而方便在每一个界面判断是否展示某个组件/按钮。
 ```
 
-![image-20220712092838083](C:\learning\项目\RuoYi-Vue\images\image-20220712092838083.png)
+![image-20220712092838083](images/image-20220712092838083.png)
 
 登陆的时候的getInfo里面获取可操作的权限
 
-![image-20220712092411424](C:\learning\项目\RuoYi-Vue\images\image-20220712092411424.png)
+![image-20220712092411424](images/image-20220712092411424.png)
 
 # 数据权限
 
@@ -181,7 +181,7 @@ public AjaxResult baseException(BaseException e)
 
 针对角色设置的一个权限，自定义一个注解，然后像log一样对其进行切入
 
-![image-20220712100415120](C:\learning\项目\RuoYi-Vue\images\image-20220712100415120.png)
+![image-20220712100415120](images/image-20220712100415120.png)
 
 ```java
 /**
@@ -336,7 +336,7 @@ public class DataScopeAspect
 
 ```
 
-![image-20220712100817700](C:\learning\项目\RuoYi-Vue\images\image-20220712100817700.png)
+![image-20220712100817700](images/image-20220712100817700.png)
 
 
 
@@ -346,7 +346,7 @@ public class DataScopeAspect
 
 ### 登陆日志
 
-![image-20220711151815410](C:\learning\项目\RuoYi-Vue\images\image-20220711151815410.png)
+![image-20220711151815410](images/image-20220711151815410.png)
 
 通过异步任务管理器记录登录日志
 
@@ -425,9 +425,9 @@ public @interface Log
 
 ### AOP进行切入
 
-![image-20220711230359018](C:\learning\项目\RuoYi-Vue\images\image-20220711230359018.png)、
+![image-20220711230359018](images/image-20220711230359018.png)、
 
-![image-20220711230732425](C:\learning\项目\RuoYi-Vue\images\image-20220711230732425.png)
+![image-20220711230732425](images/image-20220711230732425.png)
 
 # 代码自动生成
 
@@ -444,11 +444,11 @@ password varchar(11)
 
 ## 2、系统工具 -》代码生成
 
-![image-20220711154033277](C:\learning\项目\RuoYi-Vue\images\image-20220711154033277.png)
+![image-20220711154033277](images/image-20220711154033277.png)
 
 ## 3、编辑
 
-![image-20220711154044770](C:\learning\项目\RuoYi-Vue\images\image-20220711154044770.png)
+![image-20220711154044770](images/image-20220711154044770.png)
 
 ## 4、点击生成代码
 
