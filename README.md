@@ -9,7 +9,7 @@
 
 ![image-20220704124058276](images/image-20220704124058276.png)
 
-![image-20220704124041771](C:\learning\项目\RuoYi-Vue\images\image-20220704124041771.png)
+![image-20220704124041771](images/image-20220704124041771.png)
 
 
 
@@ -153,7 +153,7 @@ public AjaxResult baseException(BaseException e)
 }
 ```
 
-![image-20220711223809717](C:\learning\项目\RuoYi-Vue\images\image-20220711223809717.png)
+![image-20220711223809717](images/image-20220711223809717.png)
 
 # 权限注解
 
